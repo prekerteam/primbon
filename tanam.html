@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalender Tanam</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        /* Gaya kustom untuk memastikan elemen memiliki sudut membulat */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* Warna latar belakang ringan */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.75rem; /* Sudut membulat */
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05); /* Sedikit bayangan */
+        }
+        .form-control {
+            border-radius: 0.5rem; /* Sudut membulat untuk input */
+        }
+        .table {
+            border-radius: 0.75rem; /* Sudut membulat untuk tabel */
+            overflow: hidden; /* Memastikan sudut membulat terlihat */
+        }
+        .table thead th {
+            background-color: #0d6efd; /* Warna header tabel Bootstrap primary */
+            color: white;
+            border-color: #0d6efd;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f2f2f2; /* Warna latar belakang selang-seling */
+        }
+        .table tbody tr:hover {
+            background-color: #e9ecef; /* Warna latar belakang saat hover */
+        }
+    </style>
+</head>
+<body class="font-inter antialiased">
+    <div class="container mx-auto mt-8 p-6 bg-white rounded-xl shadow-lg max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Kalender Tanam</h1>
+        <div class="mb-5">
+            <label for="bulan" class="form-label text-lg font-medium text-gray-700">Pilih Bulan dan Tahun:</label>
+            <input type="month" class="form-control form-control-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-lg p-3" id="bulan">
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table table-bordered w-full text-left text-gray-700 rounded-lg overflow-hidden">
+                <thead class="bg-blue-600 text-white">
+                    <tr>
+                        <th class="p-3">Tanggal</th>
+                        <th class="p-3">Hari</th>
+                        <th class="p-3">Pasaran</th>
+                        <th class="p-3">Jumlah</th>
+                        <th class="p-3">Tanam</th>
+                    </tr>
+                </thead>
+                <tbody id="hasil">
+                    <tr>
+                        <td colspan="5" class="text-center p-4 text-gray-500">Silakan pilih bulan untuk melihat kalender tanam.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        // Menunggu seluruh konten DOM dimuat sebelum menjalankan skrip
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mendapatkan referensi ke elemen input bulan dan tbody tabel hasil
+            const bulanInput = document.getElementById('bulan');
+            const hasilTabel = document.getElementById('hasil');
+
+            // Mengatur bulan default ke bulan dan tahun saat ini
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Menambahkan '0' di depan jika bulan < 10
+            bulanInput.value = `${year}-${month}`; // Mengatur nilai input bulan
+            updateTable(); // Memanggil fungsi updateTable untuk pertama kali
+
+            // Menambahkan event listener untuk mendengarkan perubahan pada input bulan
+            bulanInput.addEventListener('change', updateTable);
+
+            /**
+             * Fungsi untuk menghitung pasaran Jawa berdasarkan tanggal.
+             * Referensi: 1 Januari 1900 adalah Senin Legi.
+             * @param {Date} date Objek tanggal yang akan dihitung pasarannya.
+             * @returns {string} Nama pasaran (Pahing, Pon, Wage, Kliwon, Legi).
+             */
+            function getPasaran(date) {
+                const startDate = new Date(1900, 0, 1); // Tanggal referensi: 1 Januari 1900
+                const pasarans = ["Pahing", "Pon", "Wage", "Kliwon", "Legi"]; // Urutan pasaran
+
+                // Menghitung selisih hari antara tanggal yang dipilih dan tanggal referensi
+                const diffDays = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
+                // Menggunakan modulus 5 untuk mendapatkan indeks pasaran
+                return pasarans[diffDays % 5];
+            }
+
+            /**
+             * Fungsi untuk memperbarui isi tabel kalender tanam berdasarkan bulan yang dipilih.
+             */
+            function updateTable() {
+                const selectedMonth = bulanInput.value;
+                const year = parseInt(selectedMonth.split('-')[0]);
+                const month = parseInt(selectedMonth.split('-')[1]);
+                // Mendapatkan jumlah hari dalam bulan yang dipilih
+                const lastDay = new Date(year, month, 0).getDate();
+
+                let tableRows = ""; // String untuk membangun baris-baris tabel
+
+                // Loop melalui setiap hari dalam bulan yang dipilih
+                for (let day = 1; day <= lastDay; day++) {
+                    const currentDate = new Date(year, month - 1, day); // Membuat objek tanggal untuk hari ini
+                    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    // Neptu hari (Minggu=5, Senin=4, Selasa=3, Rabu=7, Kamis=8, Jumat=6, Sabtu=9)
+                    const neptuHari = [5, 4, 3, 7, 8, 6, 9];
+
+                    const dayIndex = currentDate.getDay(); // Mendapatkan indeks hari (0=Minggu, 1=Senin, dst.)
+                    const pasaran = getPasaran(currentDate); // Mendapatkan pasaran untuk tanggal ini
+                    const neptuH = neptuHari[dayIndex]; // Mendapatkan neptu hari
+
+                    // Menentukan neptu pasaran berdasarkan nama pasaran
+                    const neptuPasaran = {
+                        "Legi": 5,
+                        "Pahing": 9,
+                        "Pon": 7,
+                        "Wage": 4,
+                        "Kliwon": 8
+                    }[pasaran];
+
+                    const totalNeptu = neptuH + neptuPasaran; // Menghitung total neptu
+
+                    // Menghitung sisa pembagian total neptu dengan 4 untuk menentukan "tanam"
+                    const sisa = totalNeptu % 4;
+
+                    let tanam = "";
+                    if (sisa === 1) {
+                        tanam = "Akar";
+                    } else if (sisa === 2) {
+                        tanam = "Batang";
+                    } else if (sisa === 3) {
+                        tanam = "Daun";
+                    } else if (sisa === 0) {
+                        tanam = "Buah";
+                    }
+
+                    // Menambahkan baris ke string tableRows
+                    tableRows += `
+                        <tr>
+                            <td class="p-3">${day}</td>
+                            <td class="p-3">${days[dayIndex]} (${neptuH})</td>
+                            <td class="p-3">${pasaran} (${neptuPasaran})</td>
+                            <td class="p-3">${totalNeptu}</td>
+                            <td class="p-3">${tanam}</td>
+                        </tr>
+                    `;
+                }
+
+                // Memasukkan baris-baris yang telah dibuat ke dalam tbody tabel
+                hasilTabel.innerHTML = tableRows;
+            }
+        });
+    </script>
+</body>
+</html>
