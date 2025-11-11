@@ -1,84 +1,131 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalender Tanam</title>
+    <!-- Memuat Tailwind CSS terbaru -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Konfigurasi dan Gaya untuk Tema Hacker -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        inter: ['Inter', 'sans-serif'],
+                    colors: {
+                        'matrix-green': '#00ff41',
+                        'console-bg': '#0a0a0a',
                     },
+                    fontFamily: {
+                        mono: ['Consolas', 'Monaco', 'Lucida Console', 'monospace'],
+                    },
+                    boxShadow: {
+                        'green-glow': '0 0 10px rgba(0, 255, 65, 0.7)',
+                        'deep-glow': '0 0 15px rgba(0, 255, 65, 0.9), 0 0 5px rgba(0, 255, 65, 0.5)',
+                    }
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
-        /* Gaya kustom untuk memastikan elemen memiliki sudut membulat */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa; /* Warna latar belakang ringan */
+            /* Warna latar belakang gelap untuk seluruh halaman */
+            background-color: #111827; /* Tailwind gray-900 */
         }
-        .container {
-            background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 0.75rem; /* Sudut membulat */
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05); /* Sedikit bayangan */
+        .terminal-window {
+            /* Efek bayangan hijau yang mendalam */
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5), 0 0 5px rgba(0, 255, 65, 0.3);
+            border: 2px solid #00ff41;
+            /* Garis tepi untuk kesan antarmuka lama */
+            animation: flicker 1.5s infinite alternate;
         }
-        .form-control {
-            border-radius: 0.5rem; /* Sudut membulat untuk input */
+
+        /* Animasi kedipan tipis untuk menambah kesan "hidup" */
+        @keyframes flicker {
+            0% { opacity: 1; }
+            100% { opacity: 0.98; }
         }
-        .table {
-            border-radius: 0.75rem; /* Sudut membulat untuk tabel */
-            overflow: hidden; /* Memastikan sudut membulat terlihat */
+
+        .header-glow {
+            text-shadow: 0 0 8px #00ff41, 0 0 2px #00ff41;
         }
-        .table thead th {
-            background-color: #0d6efd; /* Warna header tabel Bootstrap primary */
+
+        /* Menyesuaikan input agar sesuai tema gelap */
+        .console-input {
+            background-color: #1f2937; /* bg-gray-800 */
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            width: 100%;
+        }
+        /* Mengubah warna ikon kalender (jika ada) agar terlihat di latar gelap */
+        .console-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+        
+        /* Styling khusus untuk tabel */
+        .console-table th {
+            background-color: #008020; /* Hijau yang lebih gelap untuk header */
             color: white;
-            border-color: #0d6efd;
+            border-color: #00ff41;
         }
-        .table tbody tr:nth-child(even) {
-            background-color: #f2f2f2; /* Warna latar belakang selang-seling */
+        .console-table tr:nth-child(even) {
+            background-color: #1f2937; /* Latar belakang baris genap sedikit lebih terang */
         }
-        .table tbody tr:hover {
-            background-color: #e9ecef; /* Warna latar belakang saat hover */
+        .console-table tr:hover {
+            background-color: #374151; /* Efek hover gelap */
         }
     </style>
 </head>
-<body class="font-inter antialiased">
-    <div class="container mx-auto mt-8 p-6 bg-white rounded-xl shadow-lg max-w-4xl">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Kalender Tanam</h1>
+<body class="font-mono text-matrix-green min-h-screen p-4 md:p-8 flex items-center justify-center antialiased">
+    
+    <!-- Container Utama: Meniru Jendela Terminal -->
+    <div class="terminal-window bg-console-bg w-full max-w-4xl p-6 md:p-10 rounded-lg transition-all duration-300">
+        
+        <!-- Header Konsol dengan Glow Effect -->
+        <h1 class="text-3xl md:text-4xl font-bold header-glow tracking-widest text-center mb-6 border-b border-matrix-green/50 pb-4">
+            [ MODUL: KALENDER_TANAM ]
+        </h1>
+        
         <div class="mb-5">
-            <label for="bulan" class="form-label text-lg font-medium text-gray-700">Pilih Bulan dan Tahun:</label>
-            <input type="month" class="form-control form-control-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-lg p-3" id="bulan">
+            <!-- Input Bulan/Tahun yang disesuaikan dengan tema konsol -->
+            <label for="bulan" class="block mb-2 text-lg font-medium text-matrix-green/90">
+                &gt; Masukkan Parameter Bulan & Tahun:
+            </label>
+            <input type="month" class="console-input" id="bulan">
         </div>
 
         <div class="overflow-x-auto">
-            <table class="table table-bordered w-full text-left text-gray-700 rounded-lg overflow-hidden">
-                <thead class="bg-blue-600 text-white">
+            <!-- Tabel disesuaikan dengan tema konsol -->
+            <table class="console-table w-full text-left text-matrix-green rounded-lg overflow-hidden border border-matrix-green/50">
+                <thead class="text-white">
                     <tr>
-                        <th class="p-3">Tanggal</th>
-                        <th class="p-3">Hari</th>
-                        <th class="p-3">Pasaran</th>
-                        <th class="p-3">Jumlah</th>
-                        <th class="p-3">Tanam</th>
+                        <th class="p-3 border-r border-matrix-green/50">Tanggal</th>
+                        <th class="p-3 border-r border-matrix-green/50">Hari (Neptu)</th>
+                        <th class="p-3 border-r border-matrix-green/50">Pasaran (Neptu)</th>
+                        <th class="p-3 border-r border-matrix-green/50">Total Neptu</th>
+                        <th class="p-3">Rekomendasi Tanam (Sisa % 4)</th>
                     </tr>
                 </thead>
-                <tbody id="hasil">
+                <tbody id="hasil" class="text-sm">
                     <tr>
-                        <td colspan="5" class="text-center p-4 text-gray-500">Silakan pilih bulan untuk melihat kalender tanam.</td>
+                        <td colspan="5" class="text-center p-4 text-matrix-green/50">
+                            &gt; Status: Menunggu eksekusi input...
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        
+        <!-- Footer Konsol -->
+        <footer class="mt-10 pt-4 border-t border-matrix-green/50 text-sm">
+            <p class="text-matrix-green/70">
+                <span class="text-white/80">pertanian@console:~$</span> E-Primbon Engine
+            </p>
+        </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
         // Menunggu seluruh konten DOM dimuat sebelum menjalankan skrip
         document.addEventListener('DOMContentLoaded', function() {
@@ -103,12 +150,15 @@
              * @returns {string} Nama pasaran (Pahing, Pon, Wage, Kliwon, Legi).
              */
             function getPasaran(date) {
-                const startDate = new Date(1900, 0, 1); // Tanggal referensi: 1 Januari 1900
-                const pasarans = ["Pahing", "Pon", "Wage", "Kliwon", "Legi"]; // Urutan pasaran
+                // Catatan: Menggunakan 1 Januari 1900 (Senin Legi) sebagai titik awal
+                const startDate = new Date(1900, 0, 1);
+                // Urutan Pasaran: Legi, Pahing, Pon, Wage, Kliwon (berulang setiap 5 hari)
+                const pasarans = ["Legi", "Pahing", "Pon", "Wage", "Kliwon"]; 
 
                 // Menghitung selisih hari antara tanggal yang dipilih dan tanggal referensi
                 const diffDays = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
-                // Menggunakan modulus 5 untuk mendapatkan indeks pasaran
+                
+                // Pasaran dimulai dari Legi (indeks 0).
                 return pasarans[diffDays % 5];
             }
 
@@ -117,6 +167,11 @@
              */
             function updateTable() {
                 const selectedMonth = bulanInput.value;
+                if (!selectedMonth) {
+                    hasilTabel.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-matrix-green/50">&gt; ERROR: Parameter bulan belum dipilih.</td></tr>';
+                    return;
+                }
+                
                 const year = parseInt(selectedMonth.split('-')[0]);
                 const month = parseInt(selectedMonth.split('-')[1]);
                 // Mendapatkan jumlah hari dalam bulan yang dipilih
@@ -124,50 +179,58 @@
 
                 let tableRows = ""; // String untuk membangun baris-baris tabel
 
+                // Neptu hari (0=Minggu, 1=Senin, 2=Selasa, 3=Rabu, 4=Kamis, 5=Jumat, 6=Sabtu)
+                const neptuHariMap = [5, 4, 3, 7, 8, 6, 9]; 
+                // Neptu pasaran
+                const neptuPasaranMap = {
+                    "Legi": 5,
+                    "Pahing": 9,
+                    "Pon": 7,
+                    "Wage": 4,
+                    "Kliwon": 8
+                };
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
                 // Loop melalui setiap hari dalam bulan yang dipilih
                 for (let day = 1; day <= lastDay; day++) {
-                    const currentDate = new Date(year, month - 1, day); // Membuat objek tanggal untuk hari ini
-                    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                    // Neptu hari (Minggu=5, Senin=4, Selasa=3, Rabu=7, Kamis=8, Jumat=6, Sabtu=9)
-                    const neptuHari = [5, 4, 3, 7, 8, 6, 9];
+                    const currentDate = new Date(year, month - 1, day); 
+                    
+                    const dayIndex = currentDate.getDay(); 
+                    const pasaran = getPasaran(currentDate); 
+                    
+                    const neptuH = neptuHariMap[dayIndex]; 
+                    const neptuPasaran = neptuPasaranMap[pasaran];
 
-                    const dayIndex = currentDate.getDay(); // Mendapatkan indeks hari (0=Minggu, 1=Senin, dst.)
-                    const pasaran = getPasaran(currentDate); // Mendapatkan pasaran untuk tanggal ini
-                    const neptuH = neptuHari[dayIndex]; // Mendapatkan neptu hari
-
-                    // Menentukan neptu pasaran berdasarkan nama pasaran
-                    const neptuPasaran = {
-                        "Legi": 5,
-                        "Pahing": 9,
-                        "Pon": 7,
-                        "Wage": 4,
-                        "Kliwon": 8
-                    }[pasaran];
-
-                    const totalNeptu = neptuH + neptuPasaran; // Menghitung total neptu
+                    const totalNeptu = neptuH + neptuPasaran; 
 
                     // Menghitung sisa pembagian total neptu dengan 4 untuk menentukan "tanam"
                     const sisa = totalNeptu % 4;
 
                     let tanam = "";
+                    let colorClass = "";
+                    // Menambahkan warna berbeda untuk rekomendasi agar lebih mudah dibaca di tema gelap
                     if (sisa === 1) {
-                        tanam = "Akar";
+                        tanam = "Akar (Aman untuk tanaman yang diambil akarnya)";
+                        colorClass = "bg-green-700/50 text-white/90";
                     } else if (sisa === 2) {
-                        tanam = "Batang";
+                        tanam = "Batang (Aman untuk tanaman yang diambil batangnya)";
+                        colorClass = "bg-yellow-600/50 text-white/90";
                     } else if (sisa === 3) {
-                        tanam = "Daun";
+                        tanam = "Daun (Aman untuk tanaman yang diambil daunnya)";
+                        colorClass = "bg-blue-700/50 text-white/90";
                     } else if (sisa === 0) {
-                        tanam = "Buah";
+                        tanam = "Buah (Hari terbaik untuk tanaman buah)";
+                        colorClass = "bg-red-700/50 text-white/90 font-bold";
                     }
 
                     // Menambahkan baris ke string tableRows
                     tableRows += `
-                        <tr>
-                            <td class="p-3">${day}</td>
-                            <td class="p-3">${days[dayIndex]} (${neptuH})</td>
-                            <td class="p-3">${pasaran} (${neptuPasaran})</td>
-                            <td class="p-3">${totalNeptu}</td>
-                            <td class="p-3">${tanam}</td>
+                        <tr class="hover:bg-gray-700/50">
+                            <td class="p-3 border-r border-matrix-green/50">${day}</td>
+                            <td class="p-3 border-r border-matrix-green/50">${days[dayIndex]} <span class="text-yellow-400">(${neptuH})</span></td>
+                            <td class="p-3 border-r border-matrix-green/50">${pasaran} <span class="text-yellow-400">(${neptuPasaran})</span></td>
+                            <td class="p-3 border-r border-matrix-green/50 font-bold">${totalNeptu}</td>
+                            <td class="p-3 ${colorClass}">${tanam}</td>
                         </tr>
                     `;
                 }

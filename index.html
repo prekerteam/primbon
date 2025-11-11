@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primbon Digital - Konsol Peramal</title>
+    <!-- Memuat Tailwind CSS terbaru -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mengatur konfigurasi Tailwind untuk tema hacker -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'matrix-green': '#00ff41',
+                        'console-bg': '#0a0a0a',
+                    },
+                    fontFamily: {
+                        mono: ['Consolas', 'Monaco', 'Lucida Console', 'monospace'],
+                    },
+                    boxShadow: {
+                        'green-glow': '0 0 10px rgba(0, 255, 65, 0.7)',
+                        'deep-glow': '0 0 15px rgba(0, 255, 65, 0.9), 0 0 5px rgba(0, 255, 65, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Gaya khusus untuk tampilan terminal/hacker -->
+    <style>
+        body {
+            /* Warna latar belakang gelap untuk seluruh halaman */
+            background-color: #111827; /* Tailwind gray-900 */
+        }
+        .terminal-window {
+            /* Efek bayangan hijau yang mendalam */
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5), 0 0 5px rgba(0, 255, 65, 0.3);
+            border: 2px solid #00ff41;
+            /* Garis tepi untuk kesan antarmuka lama */
+            animation: flicker 1.5s infinite alternate;
+        }
+
+        /* Animasi kedipan tipis untuk menambah kesan "hidup" */
+        @keyframes flicker {
+            0% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+
+        .terminal-link:hover {
+            background-color: rgba(0, 255, 65, 0.2);
+            text-shadow: 0 0 5px #00ff41;
+            transform: scale(1.02);
+        }
+
+        .header-glow {
+            text-shadow: 0 0 8px #00ff41, 0 0 2px #00ff41;
+        }
+    </style>
+</head>
+<body class="font-mono text-matrix-green min-h-screen p-4 md:p-8 flex items-center justify-center antialiased">
+
+    <!-- Container Utama - Meniru Jendela Terminal -->
+    <div class="terminal-window bg-console-bg w-full max-w-4xl p-6 md:p-10 rounded-lg transition-all duration-300">
+
+        <!-- Header Konsol -->
+        <header class="mb-8 border-b border-matrix-green/50 pb-4">
+            <h1 class="text-3xl md:text-4xl font-bold header-glow tracking-widest">
+                [ INIT: PRIMBON_OS v1.0 ]
+            </h1>
+            <p class="text-lg text-white/70 mt-2">
+                &gt; Memuat Modul Peramalan Kuno...
+            </p>
+        </header>
+
+        <!-- Pesan Pembuka dan Status -->
+        <div class="mb-8 text-sm md:text-base">
+            <p class="mb-4">
+                <span class="text-white/80">[ OK ]</span> Koneksi ke basis data *Naga Hari* terjalin.
+            </p>
+            <p class="mb-6">
+                Silakan pilih modul yang ingin diakses dengan memasukkan angka atau mengklik tautan:
+            </p>
+        </div>
+
+        <!-- Daftar Tautan Modul -->
+        <nav class="space-y-4">
+            <!-- Tanam.html -->
+            <a href="tanam.html" class="terminal-link block p-3 md:p-4 rounded-md border border-matrix-green/50 hover:border-white transition duration-200 ease-in-out cursor-pointer flex justify-between items-center">
+                <span class="text-yellow-400">$ ./modul_pertanian.sh </span>
+                <span class="flex-1 ml-4 text-sm md:text-base text-white/80 truncate">Ramalan Hari Baik untuk Tanam & Panen</span>
+                <span class="text-matrix-green ml-4">[&gt;]</span>
+            </a>
+
+            <!-- Permainan.html -->
+            <a href="permainan.html" class="terminal-link block p-3 md:p-4 rounded-md border border-matrix-green/50 hover:border-white transition duration-200 ease-in-out cursor-pointer flex justify-between items-center">
+                <span class="text-yellow-400">$ ./modul_hiburan.sh</span>
+                <span class="flex-1 ml-4 text-sm md:text-base text-white/80 truncate">Perhitungan Keberuntungan dalam Permainan</span>
+                <span class="text-matrix-green ml-4">[&gt;]</span>
+            </a>
+
+            <!-- Perjodohan.html -->
+            <a href="perjodohan.html" class="terminal-link block p-3 md:p-4 rounded-md border border-matrix-green/50 hover:border-white transition duration-200 ease-in-out cursor-pointer flex justify-between items-center">
+                <span class="text-yellow-400">$ ./modul_asmara.sh</span>
+                <span class="flex-1 ml-4 text-sm md:text-base text-white/80 truncate">Analisis Kecocokan Jodoh (Weton)</span>
+                <span class="text-matrix-green ml-4">[&gt;]</span>
+            </a>
+
+            <!-- Musim.html -->
+            <a href="musim.html" class="terminal-link block p-3 md:p-4 rounded-md border border-matrix-green/50 hover:border-white transition duration-200 ease-in-out cursor-pointer flex justify-between items-center">
+                <span class="text-yellow-400">$ ./modul_cuaca.sh</span>
+                <span class="flex-1 ml-4 text-sm md:text-base text-white/80 truncate">Prediksi Musim dan Perhitungan Pranata Mangsa</span>
+                <span class="text-matrix-green ml-4">[&gt;]</span>
+            </a>
+        </nav>
+
+        <!-- Footer Konsol -->
+        <footer class="mt-10 pt-4 border-t border-matrix-green/50 text-sm">
+            <p class="text-white/60">
+                &gt; Menunggu input pengguna...
+            </p>
+            <p class="text-matrix-green/70">
+                <span class="text-white/80">primbon@console:~$</span>
+            </p>
+        </footer>
+    </div>
+
+</body>
+</html>
