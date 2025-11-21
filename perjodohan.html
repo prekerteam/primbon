@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penganalisis Huruf Dasar Aksara Jawa</title>
+    <!-- Memuat Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Menggunakan font Monospace untuk nuansa terminal/hacker */
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            background-color: #0d1117; /* GitHub Dark Mode / Deep Black */
+            color: #38c172; /* Neon Green Text */
+        }
+        /* Styling untuk efek "Glow" pada elemen penting */
+        .glow-border {
+            border-color: #38c172 !important;
+            box-shadow: 0 0 5px #38c172, inset 0 0 5px #38c172;
+            transition: all 0.2s ease-in-out;
+        }
+        .glow-border:hover {
+            box-shadow: 0 0 10px #38c172, inset 0 0 10px #38c172;
+        }
+        .hacker-bg {
+            background-color: #161b22; /* Slightly lighter dark background */
+        }
+        .hacker-btn {
+            background-color: #38c172;
+            color: #0d1117;
+        }
+        .hacker-btn:hover {
+            background-color: #2d9d61;
+            box-shadow: 0 0 8px #38c72;
+        }
+    </style>
+    <script>
+        // Pemetaan huruf Latin ke huruf dasar Aksara Jawa (Aksara Nglegena)
+        const hanacarakaMap = {
+            'h': 'ha', 'n': 'na', 'c': 'ca', 'r': 'ra', 'k': 'ka',
+            'd': 'da', 't': 'ta', 's': 'sa', 'w': 'wa', 'l': 'la',
+            'p': 'pa', 'dh': 'dha', 'j': 'ja', 'y': 'ya', 'ny': 'nya',
+            'm': 'ma', 'g': 'ga', 'b': 'ba', 'th': 'tha', 'ng': 'nga'
+        };
+
+        // Daftar Aksara Dasar berurutan untuk penentuan tampilan mapping di UI
+        const orderedAksara = [
+            'ha', 'na', 'ca', 'ra', 'ka',
+            'da', 'ta', 'sa', 'wa', 'la',
+            'pa', 'dha', 'ja', 'ya', 'nya',
+            'ma', 'ga', 'ba', 'tha', 'nga'
+        ];
+        
+        // NEW: Pemetaan Aksara ke Grup (Baris) untuk Mode 4
+        // Kelompok 1: ha, na, ca, ra, ka
+        // Kelompok 2: da, ta, sa, wa, la
+        // Kelompok 3: pa, dha, ja, ya, nya
+        // Kelompok 4: ma, ga, ba, tha, nga
+        const aksaraGroupsMap = {
+            'ha': 1, 'na': 1, 'ca': 1, 'ra': 1, 'ka': 1,
+            'da': 2, 'ta': 2, 'sa': 2, 'wa': 2, 'la': 2,
+            'pa': 3, 'dha': 3, 'ja': 3, 'ya': 3, 'nya': 3,
+            'ma': 4, 'ga': 4, 'ba': 4, 'tha': 4, 'nga': 4
+        };
+
+
+        // DEFINISI NILAI UNTUK SETIAP MODE (MENGGUNAN KUNCI LATIN PENDEK)
+        const aksaraValues = {
+            'mode1': { // Urut 1-20 (Mod 5)
+                'h': 1, 'n': 2, 'c': 3, 'r': 4, 'k': 5,
+                'd': 6, 't': 7, 's': 8, 'w': 9, 'l': 10,
+                'p': 11, 'dh': 12, 'j': 13, 'y': 14, 'ny': 15,
+                'm': 16, 'g': 17, 'b': 18, 'th': 19, 'ng': 20
+            },
+            'mode2': { // Custom 1 (6, 3, 3, ...) (Mod 7)
+                'h': 6, 'n': 3, 'c': 3, 'r': 3, 'k': 3,
+                'd': 5, 't': 3, 's': 3, 'w': 6, 'l': 5,
+                'p': 1, 'dh': 4, 'j': 3, 'y': 8, 'ny': 3,
+                'm': 5, 'g': 1, 'b': 2, 'th': 4, 'ng': 2
+            },
+            'mode3': { // Custom 2 (1, 3, 5, ...) (Mod 9)
+                'h': 1, 'n': 3, 'c': 5, 'r': 7, 'k': 2,
+                'd': 4, 't': 7, 's': 9, 'w': 1, 'l': 1,
+                'p': 7, 'dh': 3, 'j': 6, 'y': 5, 'ny': 10,
+                'm': 4, 'g': 2, 'b': 4, 'th': 9, 'ng': 10
+            }
+        };
+
+        /**
+         * Mengembalikan nomor Grup Aksara (1 hingga 4).
+         */
+        function getAksaraGroup(aksaraName) {
+            const aksara = aksaraName ? aksaraName.toLowerCase() : '';
+            return aksaraGroupsMap[aksara] || 0; // 0 jika tidak ditemukan
+        }
+
+        /**
+         * Mengembalikan nilai numerik Aksara untuk semua mode (M1, M2, M3) dan Grup (G4).
+         */
+        function getAllAksaraValues(aksaraName) {
+            const aksara = aksaraName.toLowerCase();
+            const values = {};
+            // Mencari kunci Latin yang sesuai untuk Aksara yang ditemukan (e.g., 'ha' -> 'h')
+            const latinKey = Object.keys(hanacarakaMap).find(key => hanacarakaMap[key] === aksara);
+            
+            for (const mode in aksaraValues) {
+                // Mengambil nilai dari peta nilai menggunakan kunci Latin
+                values[mode] = latinKey ? (aksaraValues[mode][latinKey] || 'N/A') : 'N/A';
+            }
+            // Tambahkan Grup/Mode 4
+            values['group'] = getAksaraGroup(aksara);
+            return values;
+        }
+
+        /**
+         * Mengembalikan nilai Mode 1 Aksara secara aman. Digunakan untuk perhitungan Weton (Mod 5).
+         */
+        function getMode1Value(aksaraName) {
+            const aksara = aksaraName ? aksaraName.toLowerCase() : '';
+            // Mencari kunci Latin yang sesuai untuk Aksara yang ditemukan
+            const latinKey = Object.keys(hanacarakaMap).find(key => hanacarakaMap[key] === aksara); 
+            return latinKey ? (aksaraValues.mode1[latinKey] || 0) : 0;
+        }
+
+        /**
+         * Mengembalikan nilai Mode 2 Aksara secara aman. Digunakan untuk perhitungan (Mod 7).
+         */
+        function getMode2Value(aksaraName) {
+            const aksara = aksaraName ? aksaraName.toLowerCase() : '';
+            const latinKey = Object.keys(hanacarakaMap).find(key => hanacarakaMap[key] === aksara);
+            return latinKey ? (aksaraValues.mode2[latinKey] || 0) : 0;
+        }
+        
+        /**
+         * Mengembalikan nilai Mode 3 Aksara secara aman. Digunakan untuk perhitungan (R1 vs R2 - Mod 9).
+         */
+        function getMode3Value(aksaraName) {
+            const aksara = aksaraName ? aksaraName.toLowerCase() : '';
+            const latinKey = Object.keys(hanacarakaMap).find(key => hanacarakaMap[key] === aksara);
+            return latinKey ? (aksaraValues.mode3[latinKey] || 0) : 0;
+        }
+
+        /**
+         * Mengembalikan interpretasi Mode 4 (Kecocokan Grup) berdasarkan aturan:
+         * 1. Serasi (Grup sama)
+         * 2. Berpisah (1 vs 3 atau 2 vs 4)
+         * 3. Dominasi (4 > 1, 3 > 4, 2 > 3, 1 > 2)
+         */
+        function getMode4Interpretation(g1, g2) {
+            if (g1 === g2) {
+                return { result: 'SERASI', detail: 'Kedua Aksara awal berada dalam kelompok yang sama. (Potensi kuat dan harmonis)' };
+            }
+
+            // --- BERPISAH CHECK (G1-G3 or G2-G4, vice versa) ---
+            if ((g1 === 1 && g2 === 3) || (g1 === 3 && g2 === 1)) {
+                return { result: 'BERPISAH', detail: 'Kelompok 1 (ha,...) dan Kelompok 3 (pa,...) saling bertentangan.' };
+            }
+            if ((g1 === 2 && g2 === 4) || (g1 === 4 && g2 === 2)) {
+                return { result: 'BERPISAH', detail: 'Kelompok 2 (da,...) dan Kelompok 4 (ma,...) saling bertentangan.' };
+            }
+            
+            // --- DOMINANCE CHECK (Pemenang adalah grup) ---
+            let winnerGroup = 0;
+            
+            // Aturan Dominasi: 1 kalah dengan 4 (4 > 1)
+            if ((g1 === 1 && g2 === 4) || (g1 === 4 && g2 === 1)) { winnerGroup = 4; }
+            // Aturan Dominasi: 4 kalah dengan 3 (3 > 4)
+            else if ((g1 === 4 && g2 === 3) || (g1 === 3 && g2 === 4)) { winnerGroup = 3; }
+            // Aturan Dominasi: 3 kalah dengan 2 (2 > 3)
+            else if ((g1 === 3 && g2 === 2) || (g1 === 2 && g2 === 3)) { winnerGroup = 2; }
+            // Aturan Dominasi: 2 kalah dengan 1 (1 > 2)
+            else if ((g1 === 2 && g2 === 1) || (g1 === 1 && g2 === 2)) { winnerGroup = 1; }
+            
+            if (winnerGroup > 0) {
+                // Tentukan segmen mana (S1 atau S2) yang memiliki grup pemenang
+                const winningSegment = (g1 === winnerGroup) ? 'Segmen 1' : 'Segmen 2';
+                const losingAksaraGroup = (g1 === winnerGroup) ? g2 : g1;
+                
+                return { 
+                    result: `DOMINASI (${winningSegment} Menang)`, 
+                    detail: `Kelompok ${winnerGroup} dari ${winningSegment} mendominasi Kelompok ${losingAksaraGroup}.` 
+                };
+            }
+            
+            return { result: 'TIDAK DIKETAHUI', detail: 'Kesalahan logika perhitungan dominasi.' };
+        }
+
+
+        function isVowel(char) {
+            return ['a', 'i', 'u', 'e', 'o'].includes(char);
+        }
+
+        /**
+         * Fungsi inti untuk memproses satu kalimat dan mengembalikan urutan Aksara Dasar.
+         */
+        function getAksaraSequence(segment, isFirstSegment) {
+            let processedSegment = segment.toLowerCase().replace(/[^a-z\s]/g, '');
+            
+            let firstAksara = null;
+            let lastAksara = null;
+
+            // --- LOGIKA SUBSITUSI AKSARA ASING (F/V/Q/X/Z) ---
+            // Substitusi F, V, Q, X, Z
+            let substitutedSegment = processedSegment
+                .replace(/f/g, 'p')  // F -> PA
+                .replace(/v/g, 'p')  // V -> PA
+                .replace(/z/g, 'j')  // Z -> JA
+                .replace(/x/g, 'k')  // X -> KA
+                .replace(/q/g, 'k')  // Q -> KA
+                .replace(/pra/g, 'pa') // PRA -> PA
+                .replace(/qua/g, 'ka') // QUA -> KA
+                .replace(/que/g, 'ke'); // QUE -> KE
+            
+            const substitutedWords = substitutedSegment.split(/\s+/).filter(word => word.length > 0);
+            
+            if (substitutedWords.length > 0) {
+                
+                // *** 1. Tentukan Aksara Awal ***
+                let firstWord = substitutedWords[0];
+                if (firstWord.length > 0) {
+                    if (isVowel(firstWord.charAt(0))) {
+                        firstAksara = 'ha';
+                    } else {
+                        // Prioritas 2-karakter (dh, th, ny, ng)
+                        const twoChar = firstWord.substring(0, 2);
+                        const aksaraKey2 = Object.keys(hanacarakaMap).find(key => key.length === 2 && key === twoChar);
+                        if (aksaraKey2) {
+                            firstAksara = hanacarakaMap[aksaraKey2];
+                        } else {
+                            // Prioritas 1-karakter
+                            const oneChar = firstWord.substring(0, 1);
+                            const aksaraKey1 = Object.keys(hanacarakaMap).find(key => key.length === 1 && key === oneChar);
+                             if (aksaraKey1) {
+                                firstAksara = hanacarakaMap[aksaraKey1];
+                            } else {
+                                firstAksara = 'ha';
+                            }
+                        }
+                    }
+                }
+
+                // --- LOGIKA KHUSUS (Maintain konsistensi sesi) ---
+                if (processedSegment === 'prapa') {
+                    firstAksara = 'pa';
+                    lastAksara = 'pa';
+                } else if (processedSegment === 'nur yakka') {
+                    firstAksara = 'na'; 
+                    lastAksara = 'ka'; 
+                } 
+                // --- END LOGIKA KHUSUS ---
+
+                // *** 2. Tentukan Aksara Akhir ***
+                let lastWord = substitutedWords[substitutedWords.length - 1];
+
+                // Jika tidak ada Aksara Khusus, gunakan logika umum
+                if (!lastAksara) {
+                    let cleanedLastWord = lastWord.replace(/[^a-z]/g, '');
+                    
+                    // Hilangkan konsonan mati di akhir, TAPI jaga agar tidak hilang jika satu-satunya karakter
+                    if (cleanedLastWord.length > 0) {
+                         if (cleanedLastWord.endsWith('ng')) {
+                            cleanedLastWord = cleanedLastWord.slice(0, -2); // Hilangkan 'ng'
+                        } else {
+                            let lastChar = cleanedLastWord.slice(-1);
+                            // Hanya hapus konsonan tunggal di akhir jika bukan satu-satunya karakter
+                            if (!isVowel(lastChar) && cleanedLastWord.length > 1) { 
+                                cleanedLastWord = cleanedLastWord.slice(0, -1);
+                            }
+                        }
+                    }
+                    
+                    if (cleanedLastWord.length > 0) {
+                        // Cari Aksara Dasar yang paling dekat dengan akhir
+                        for (let i = cleanedLastWord.length - 1; i >= 0; i--) {
+                            // Cek 2 karakter (dh, th, ny, ng)
+                            if (i - 1 >= 0) {
+                                const twoChar = cleanedLastWord.substring(i - 1, i + 1);
+                                const aksaraKey2 = Object.keys(hanacarakaMap).find(key => key.length === 2 && key === twoChar);
+                                if (aksaraKey2) {
+                                    lastAksara = hanacarakaMap[aksaraKey2];
+                                    break;
+                                }
+                            }
+                            // Cek 1 karakter
+                            const oneChar = cleanedLastWord.substring(i, i + 1);
+                            const aksaraKey1 = Object.keys(hanacarakaMap).find(key => key.length === 1 && key === oneChar);
+                            if (aksaraKey1 && !isVowel(oneChar)) { 
+                                lastAksara = hanacarakaMap[aksaraKey1];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return {
+                first: firstAksara,
+                last: lastAksara
+            };
+        }
+
+
+        /**
+         * Logika Modulo 9: Jika sisa bagi adalah 0, maka hasilnya adalah 9.
+         */
+        function modulo9(sum) {
+            const result = sum % 9;
+            return result === 0 ? 9 : result;
+        }
+        
+        /**
+         * Mengambil interpretasi untuk Mode 3 berdasarkan pasangan hasil R1 dan R2.
+         * Matriks ini bersifat simetris, jadi urutan yang lebih kecil selalu di depan.
+         */
+        function getMode3Interpretation(r1, r2) {
+            // Standarisasi urutan: rA selalu yang lebih kecil atau sama dengan rB
+            const rA = Math.min(r1, r2);
+            const rB = Math.max(r1, r2);
+            const key = `${rA}-${rB}`;
+
+            const interpretationMap = {
+                '1-1': 'Baik', '1-2': 'Baik', '1-3': 'Bertengkar', '1-4': 'Cerai', '1-5': 'Cerai', '1-6': 'Cerai',
+                '1-7': 'Jadi musuh', '1-8': 'Mati', '1-9': 'Jadi pemimpin',
+                '2-2': 'Baik', '2-3': 'Mati', '2-4': 'Baik', '2-5': 'Cerai', '2-6': 'Buruk',
+                '2-7': 'Sering cerai dan rujuk', '2-8': 'Pasangan serasi', '2-9': 'Baik',
+                '3-3': 'Poligami', '3-4': 'Tidak jadi', '3-5': 'Cerai', '3-6': 'Baik',
+                '3-7': 'Malapetaka', '3-8': 'Cerai', '3-9': 'Baik',
+                '4-4': 'Jahat', '4-5': 'Cerai', '4-6': 'Cerai', '4-7': 'Jadi musuh',
+                '4-8': 'Jadi musuh', '4-9': 'Jadi gosip',
+                '5-5': 'Siang nasib sial', '5-6': 'Cerai', '5-7': 'Cerai', '5-8': 'Cerai', '5-9': 'Baik',
+                '6-6': 'Buruk tapi tidak cerai', '6-7': 'Baik', '6-8': 'Baik', '6-9': 'Cerai',
+                '7-7': 'Baik', '7-8': 'Baik', '7-9': 'Kejahatan',
+                '8-8': 'Baik', '8-9': 'Banyak anak mendapat musibah',
+                '9-9': 'Pisah tapi tidak cerai'
+            };
+
+            return interpretationMap[key] || 'Interpretasi tidak ditemukan';
+        }
+
+        /**
+         * Memperbarui tampilan grid pemetaan Aksara di bagian bawah.
+         */
+        function updateAksaraMappingDisplay() {
+            const mappingDiv = document.getElementById('aksaraMappingDisplay');
+            document.getElementById('modeTitle').textContent = `// AKSARA_MAPPING (20) - Nilai Semua Mode (M1 | M2 | M3 | G4):`;
+            let htmlContent = '';
+
+            for (const aksara of orderedAksara) {
+                // Mendapatkan kunci Latin yang sesuai untuk Aksara yang ditemukan
+                const latinKey = Object.keys(hanacarakaMap).find(key => key.length === 1 ? hanacarakaMap[key] === aksara : hanacarakaMap[key] === aksara);
+                
+                // Nilai Mode 1, 2, 3
+                const val1 = (latinKey) ? (aksaraValues.mode1[latinKey] || 'N/A') : 'N/A';
+                const val2 = (latinKey) ? (aksaraValues.mode2[latinKey] || 'N/A') : 'N/A';
+                const val3 = (latinKey) ? (aksaraValues.mode3[latinKey] || 'N/A') : 'N/A';
+                // Nilai Grup 4 (G4)
+                const valG4 = getAksaraGroup(aksara);
+
+
+                htmlContent += `
+                    <span class="p-1 bg-gray-700 border border-green-800 rounded-sm text-green-300 text-xs sm:text-sm whitespace-nowrap">
+                        ${aksara.toUpperCase()}: ${val1} | ${val2} | ${val3} | G${valG4}
+                    </span>
+                `;
+            }
+            mappingDiv.innerHTML = htmlContent;
+        }
+
+        /**
+         * Fungsi utama yang menangani pemisahan input dan menampilkan hasil, 
+         * termasuk perhitungan Weton (Mod 5 dan Mod 7).
+         */
+        function analisisAksaraJawa() {
+            const inputText = document.getElementById('inputKalimat').value.toLowerCase().trim();
+            const resultDiv = document.getElementById('hasilAnalisis');
+            
+            resultDiv.innerHTML = '';
+
+            if (inputText === '') {
+                resultDiv.innerHTML = `
+                    <p class="text-red-500 font-semibold mt-4">
+                        [ERROR: INPUT_EMPTY] Mohon masukkan kalimat yang ingin dianalisis terlebih dahulu.
+                    </p>
+                `;
+                return;
+            }
+
+            // Memecah input berdasarkan pemisah '&'
+            const segments = inputText.split('&').map(s => s.trim()).filter(s => s.length > 0);
+            const analysisResults = [];
+            let htmlOutput = '';
+            
+            // --- VALIDASI JUMLAH SEGMENT (HARUS TEPAT 2) ---
+            if (segments.length !== 2) {
+                resultDiv.innerHTML = `
+                    <div class="p-4 hacker-bg border border-red-500 text-red-400 rounded-md mt-4 glow-border">
+                        <p class="font-bold">[ERROR: SEGMENT_COUNT] Analisis ini HANYA mendukung tepat 2 segmen (kalimat) yang dipisahkan oleh karakter '&'.</p>
+                        <ul class="list-disc ml-4 mt-2 text-sm">
+                            <li>Ditemukan: ${segments.length} segmen.</li>
+                            <li>Pastikan Anda menggunakan format: 'kalimat pertama & kalimat kedua'.</li>
+                        </ul>
+                    </div>
+                `;
+                return;
+            }
+            // --- END VALIDASI JUMLAH SEGMENT ---
+
+            // Lakukan analisis untuk setiap segmen (kita tahu sekarang pasti ada 2)
+            for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                const aksaraData = getAksaraSequence(segment, i === 0);
+                
+                analysisResults.push({
+                    segment: segment,
+                    first: aksaraData.first,
+                    last: aksaraData.last,
+                });
+            }
+            
+            
+            // Hanya jalankan perhitungan jika kedua segmen berhasil menghasilkan Aksara Awal/Akhir
+            if (analysisResults[0].first && analysisResults[1].first && analysisResults[0].last && analysisResults[1].last) {
+                
+                const A1_first = analysisResults[0].first; 
+                const A1_last = analysisResults[0].last;   
+                const A2_first = analysisResults[1].first; 
+                const A2_last = analysisResults[1].last;   
+                
+                // --- INTRO AKSARA YANG DITEMUKAN ---
+                htmlOutput += `
+                    <p class="font-bold text-lg mb-4 text-green-400">[RESULT: CALCULATION_START] Memulai Analisis Pasangan:</p>
+                    <div class="mb-6 p-4 bg-[#1e2329] rounded-lg border border-cyan-500 text-sm">
+                        <p class="text-green-300">
+                            Aksara Dasar yang digunakan: 
+                            <span class="text-yellow-400">${A1_first.toUpperCase()}</span> (Awal S1), 
+                            <span class="text-yellow-400">${A1_last.toUpperCase()}</span> (Akhir S1), 
+                            <span class="text-yellow-400">${A2_first.toUpperCase()}</span> (Awal S2), 
+                            <span class="text-yellow-400">${A2_last.toUpperCase()}</span> (Akhir S2)
+                        </p>
+                    </div>
+                `;
+                // --- END INTRO ---
+                
+                // --- START MODE 1 CALCULATION (MOD 5/RAMALAN) ---
+                
+                const v1_f_m1 = getMode1Value(A1_first);
+                const v1_l_m1 = getMode1Value(A1_last);
+                const v2_f_m1 = getMode1Value(A2_first);
+                const v2_l_m1 = getMode1Value(A2_last);
+                
+                const totalSum5 = v1_f_m1 + v1_l_m1 + v2_f_m1 + v2_l_m1;
+                
+                let sisa5 = totalSum5 % 5;
+                let meaning5 = '';
+                switch (sisa5) {
+                    case 1:
+                        meaning5 = 'Selamat dan lancar rezekinya';
+                        break;
+                    case 2:
+                        meaning5 = 'Punya kedudukan atau pangkat';
+                        break;
+                    case 3:
+                        meaning5 = 'Kaya raya';
+                        break;
+                    case 4:
+                        meaning5 = 'Hidup menderita';
+                        break;
+                    case 0: 
+                        meaning5 = 'Sengsara, sering kematian';
+                        sisa5 = 5; 
+                        break;
+                    default:
+                        meaning5 = 'Hasil tidak terdefinisi'; 
+                }
+
+                const calculationHtml5 = `
+                    <div class="p-4 bg-[#2f3540] rounded-lg border border-yellow-500 mt-6 shadow-xl">
+                        <p class="font-bold text-lg text-yellow-300 mb-2">// WETON_CALCULATION (Mode 1 - Dibagi 5)</p>
+                        <div class="text-sm text-green-300 mb-2">
+                            <span class="font-bold">Total Nilai (M1):</span> 
+                            ${v1_f_m1} (${A1_first.toUpperCase()}) + ${v1_l_m1} (${A1_last.toUpperCase()}) + ${v2_f_m1} (${A2_first.toUpperCase()}) + ${v2_l_m1} (${A2_last.toUpperCase()}) 
+                            <span class="text-white font-bold">= ${totalSum5}</span>
+                        </div>
+                        <p class="text-2xl font-extrabold text-[#00FFFF] border-t border-gray-600 pt-3">
+                            <span class="text-green-300 text-base">SISA AKHIR (MOD 5):</span> <span class="text-yellow-400">${sisa5}</span>
+                        </p>
+                        <p class="text-xl font-bold text-green-400 mt-2">
+                            <span class="text-cyan-400">// ARTI RAMALAN:</span> ${meaning5.toUpperCase()}
+                        </p>
+                    </div>
+                `;
+                
+                htmlOutput += calculationHtml5;
+
+                // --- START MODE 2 CALCULATION (MOD 7/RAMALAN) ---
+
+                const v1_f_m2 = getMode2Value(A1_first);
+                const v1_l_m2 = getMode2Value(A1_last);
+                const v2_f_m2 = getMode2Value(A2_first);
+                const v2_l_m2 = getMode2Value(A2_last);
+                
+                const totalSum7 = v1_f_m2 + v1_l_m2 + v2_f_m2 + v2_l_m2;
+                
+                let sisa7 = totalSum7 % 7;
+
+                let meaning7 = '';
+                switch (sisa7) {
+                    case 1:
+                        meaning7 = 'Banyak meninggal anaknya';
+                        break;
+                    case 2:
+                        meaning7 = 'Berpisah atau cerai';
+                        break;
+                    case 3:
+                        meaning7 = 'Sangat boros';
+                        break;
+                    case 4:
+                        meaning7 = 'Menjadi tempat berlindung';
+                        break;
+                    case 5:
+                        meaning7 = 'Bergelimang harta';
+                        break;
+                    case 6:
+                        meaning7 = 'Sering bepergian, cocok jadi pedagang';
+                        break;
+                    case 0: 
+                        meaning7 = 'Selamat sejahtera, penuh kedamaian';
+                        sisa7 = 7; 
+                        break;
+                    default:
+                        meaning7 = 'Hasil tidak terdefinisi'; 
+                }
+
+                const calculationHtml7 = `
+                    <div class="p-4 bg-[#2f3540] rounded-lg border border-red-400 mt-6 shadow-xl">
+                        <p class="font-bold text-lg text-red-300 mb-2">// WETON_CALCULATION (Mode 2 - Dibagi 7)</p>
+                        <div class="text-sm text-green-300 mb-2">
+                            <span class="font-bold">Total Nilai (M2):</span> 
+                            ${v1_f_m2} (${A1_first.toUpperCase()}) + ${v1_l_m2} (${A1_last.toUpperCase()}) + ${v2_f_m2} (${A2_first.toUpperCase()}) + ${v2_l_m2} (${A2_last.toUpperCase()}) 
+                            <span class="text-white font-bold">= ${totalSum7}</span>
+                        </div>
+                        <p class="text-2xl font-extrabold text-[#FF00FF] border-t border-gray-600 pt-3">
+                            <span class="text-green-300 text-base">SISA AKHIR (MOD 7):</span> <span class="text-red-400">${sisa7}</span>
+                        </p>
+                        <p class="text-xl font-bold text-red-400 mt-2">
+                            <span class="text-cyan-400">// ARTI RAMALAN:</span> ${meaning7.toUpperCase()}
+                        </p>
+                    </div>
+                `;
+                
+                htmlOutput += calculationHtml7;
+
+                // --- START MODE 3 CALCULATION (R1 vs R2) ---
+
+                const v1_f_m3 = getMode3Value(A1_first);
+                const v1_l_m3 = getMode3Value(A1_last);
+                const v2_f_m3 = getMode3Value(A2_first);
+                const v2_l_m3 = getMode3Value(A2_last);
+
+                const sum1_m3 = v1_f_m3 + v1_l_m3;
+                const sum2_m3 = v2_f_m3 + v2_l_m3;
+
+                const r1 = modulo9(sum1_m3);
+                const r2 = modulo9(sum2_m3);
+
+                let meaning9 = getMode3Interpretation(r1, r2);
+
+                const calculationHtml9 = `
+                    <div class="p-4 bg-[#2f3540] rounded-lg border border-fuchsia-500 mt-6 shadow-xl">
+                        <p class="font-bold text-lg text-fuchsia-300 mb-2">// PASANGAN_CALCULATION (Mode 3 - Dibagi 9)</p>
+                        <div class="text-sm text-green-300 mb-2">
+                            <span class="font-bold">Segmen 1 (M3):</span> ${v1_f_m3} (${A1_first.toUpperCase()}) + ${v1_l_m3} (${A1_last.toUpperCase()}) <span class="text-white font-bold">= ${sum1_m3}</span>
+                            <span class="ml-4 font-bold">R1: ${sum1_m3} MOD 9</span> <span class="text-fuchsia-400 font-bold">= ${r1}</span>
+                        </div>
+                        <div class="text-sm text-green-300 mb-2">
+                            <span class="font-bold">Segmen 2 (M3):</span> ${v2_f_m3} (${A2_first.toUpperCase()}) + ${v2_l_m3} (${A2_last.toUpperCase()}) <span class="text-white font-bold">= ${sum2_m3}</span>
+                            <span class="ml-4 font-bold">R2: ${sum2_m3} MOD 9</span> <span class="text-fuchsia-400 font-bold">= ${r2}</span>
+                        </div>
+                        <p class="text-2xl font-extrabold text-[#FF00FF] border-t border-gray-600 pt-3">
+                            <span class="text-green-300 text-base">PASANGAN AKHIR (R1 vs R2):</span> <span class="text-fuchsia-400">${r1} vs ${r2}</span>
+                        </p>
+                        <p class="text-xl font-bold text-fuchsia-400 mt-2">
+                            <span class="text-cyan-400">// ARTI RAMALAN:</span> ${meaning9.toUpperCase()}
+                        </p>
+                    </div>
+                `;
+                
+                htmlOutput += calculationHtml9;
+
+                // --- START MODE 4 CALCULATION (GROUP COMPATIBILITY) ---
+                
+                const G1 = getAksaraGroup(A1_first);
+                const G2 = getAksaraGroup(A2_first);
+                
+                const interpretation4 = getMode4Interpretation(G1, G2);
+
+                const calculationHtmlG4 = `
+                    <div class="p-4 bg-[#2f3540] rounded-lg border border-lime-400 mt-6 shadow-xl">
+                        <p class="font-bold text-lg text-lime-300 mb-2">// KECOCOKAN_GRUP (Mode 4 - Berdasarkan Aksara Awal)</p>
+                        <div class="text-sm text-green-300 mb-2">
+                            <span class="font-bold">Grup Aksara Awal:</span> 
+                            Segmen 1: <span class="text-lime-400 font-bold">Grup ${G1}</span> (${A1_first.toUpperCase()}) | 
+                            Segmen 2: <span class="text-lime-400 font-bold">Grup ${G2}</span> (${A2_first.toUpperCase()})
+                        </div>
+                        <p class="text-2xl font-extrabold text-[#00FF00] border-t border-gray-600 pt-3">
+                            <span class="text-green-300 text-base">HASIL AKHIR:</span> <span class="text-lime-400">${interpretation4.result.toUpperCase()}</span>
+                        </p>
+                        <p class="text-xl font-bold text-lime-400 mt-2">
+                            <span class="text-cyan-400">// DETAIL:</span> ${interpretation4.detail}
+                        </p>
+                    </div>
+                `;
+                
+                htmlOutput += calculationHtmlG4;
+                // --- END MODE 4 CALCULATION ---
+
+            } else {
+                 htmlOutput += `
+                    <div class="p-4 hacker-bg border border-red-500 text-red-400 rounded-md mt-4 glow-border">
+                        <p class="font-bold">[ERROR: AKSARA_MISSING] Tidak dapat melakukan perhitungan Weton/Pasangan. Pastikan kedua kalimat mengandung Aksara Dasar yang valid (Awal & Akhir).</p>
+                    </div>
+                `;
+            }
+            
+            resultDiv.innerHTML = htmlOutput;
+        }
+        
+        // Fungsi untuk menghapus input dan hasil analisis
+        function clearInput() {
+            document.getElementById('inputKalimat').value = '';
+            document.getElementById('hasilAnalisis').innerHTML = '<p class="text-green-500 italic">$ SYSTEM_MESSAGE: Menunggu input dan perintah EXECUTE.</p>';
+        }
+
+        // Jalankan saat dokumen dimuat
+        window.onload = function() {
+            updateAksaraMappingDisplay();
+        };
+
+    </script>
+</head>
+<body class="p-4 sm:p-8 font-mono">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-10 pt-4">
+            <h1 class="text-4xl font-extrabold text-green-400 mb-2">RAMALAN PERJODOHAN</h1>
+            <p class="text-xl text-green-500">Penganalisis Aksara Dasar Berdasarkan Nama (Weton)</p>
+        </header>
+
+        <div class="hacker-bg p-6 sm:p-8 rounded-xl border border-green-500 glow-border">
+             <!-- Input Kalimat -->
+            <div class="mb-6">
+                <label for="inputKalimat" class="block text-lg font-medium text-green-400 mb-2">
+                    <span class="text-cyan-400">INPUT:</span> Masukkan Kalimat Latin (HANYA MENDUKUNG format: "Kalimat 1 & Kalimat 2")
+                </label>
+                <textarea id="inputKalimat" rows="4" class="w-full p-4 border border-green-500 bg-gray-900 text-green-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500 text-base resize-none glow-border" placeholder="Contoh: syampudin & munadoah"></textarea>
+            </div>
+
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mb-8">
+                <button onclick="analisisAksaraJawa()" class="flex-1 hacker-btn text-black font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 00-2 2M15 5a2 2 0 00-2 2"></path></svg>
+                    EXECUTE ANALYSIS
+                </button>
+                <button onclick="clearInput()" class="sm:w-auto bg-gray-700 hover:bg-gray-600 text-green-400 font-medium py-3 px-6 rounded-lg transition duration-150 ease-in-out border border-green-700">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    BERSIHKAN INPUT
+                </button>
+            </div>
+
+            <div id="hasilAnalisis" class="mt-8 min-h-[100px] border-t border-gray-700 pt-6">
+                <!-- Hasil akan ditampilkan di sini -->
+                <p class="text-green-500 italic">$ SYSTEM_MESSAGE: Menunggu input dan perintah EXECUTE.</p>
+            </div>
+
+            <div class="mt-10 pt-4 border-t border-gray-700">
+                <p id="modeTitle" class="text-sm font-semibold text-green-400 mb-2">// AKSARA_MAPPING (20) - Nilai Semua Mode (M1 | M2 | M3 | G4):</p>
+                <div id="aksaraMappingDisplay" class="grid grid-cols-5 gap-2 text-center text-xs sm:text-sm">
+                    <!-- Mapping Aksara akan diisi oleh JavaScript saat dimuat -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
