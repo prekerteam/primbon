@@ -148,15 +148,15 @@
          */
         function getMode4Interpretation(g1, g2) {
             if (g1 === g2) {
-                return { result: 'SERASI', detail: 'Kedua Aksara awal berada dalam kelompok yang sama. (Potensi kuat dan harmonis)' };
+                return { result: 'SERASI', detail: 'Kuat dan harmonis)' };
             }
 
             // --- BERPISAH CHECK (G1-G3 or G2-G4, vice versa) ---
             if ((g1 === 1 && g2 === 3) || (g1 === 3 && g2 === 1)) {
-                return { result: 'BERPISAH', detail: 'Kelompok 1 (ha,...) dan Kelompok 3 (pa,...) saling bertentangan.' };
+                return { result: 'BERPISAH', detail: 'Saling bertentangan.' };
             }
             if ((g1 === 2 && g2 === 4) || (g1 === 4 && g2 === 2)) {
-                return { result: 'BERPISAH', detail: 'Kelompok 2 (da,...) dan Kelompok 4 (ma,...) saling bertentangan.' };
+                return { result: 'BERPISAH', detail: 'Saling bertentangan' };
             }
             
             // --- DOMINANCE CHECK (Pemenang adalah grup) ---
@@ -173,7 +173,7 @@
             
             if (winnerGroup > 0) {
                 // Tentukan segmen mana (S1 atau S2) yang memiliki grup pemenang
-                const winningSegment = (g1 === winnerGroup) ? 'Segmen 1' : 'Segmen 2';
+                const winningSegment = (g1 === winnerGroup) ? 'Nama 1' : 'Nama 2';
                 const losingAksaraGroup = (g1 === winnerGroup) ? g2 : g1;
                 
                 return { 
@@ -441,6 +441,33 @@
                 `;
                 // --- END INTRO ---
                 
+                // --- START MODE 4 CALCULATION (GROUP COMPATIBILITY) ---
+                
+                const G1 = getAksaraGroup(A1_first);
+                const G2 = getAksaraGroup(A2_first);
+                
+                const interpretation4 = getMode4Interpretation(G1, G2);
+
+                const calculationHtmlG4 = `
+                    <div class="p-4 bg-[#2f3540] rounded-lg border border-lime-400 mt-6 shadow-xl">
+                        <p class="font-bold text-lg text-lime-300 mb-2">// Jalan Fikiran</p>
+                        <div class="text-sm text-green-300 mb-2">
+                            <span class="font-bold">Grup Aksara Awal:</span> 
+                            Segmen 1: <span class="text-lime-400 font-bold">Grup ${G1}</span> (${A1_first.toUpperCase()}) | 
+                            Segmen 2: <span class="text-lime-400 font-bold">Grup ${G2}</span> (${A2_first.toUpperCase()})
+                        </div>
+                        <p class="text-2xl font-extrabold text-[#00FF00] border-t border-gray-600 pt-3">
+                            <span class="text-green-300 text-base">HASIL AKHIR:</span> <span class="text-lime-400">${interpretation4.result.toUpperCase()}</span>
+                        </p>
+                        <p class="text-xl font-bold text-lime-400 mt-2">
+                            <span class="text-cyan-400">// DETAIL:</span> ${interpretation4.detail}
+                        </p>
+                    </div>
+                `;
+                
+                htmlOutput += calculationHtmlG4;
+                // --- END MODE 4 CALCULATION ---
+
                 // --- START MODE 1 CALCULATION (MOD 5/RAMALAN) ---
                 
                 const v1_f_m1 = getMode1Value(A1_first);
@@ -475,7 +502,7 @@
 
                 const calculationHtml5 = `
                     <div class="p-4 bg-[#2f3540] rounded-lg border border-yellow-500 mt-6 shadow-xl">
-                        <p class="font-bold text-lg text-yellow-300 mb-2">// WETON_CALCULATION (Mode 1 - Dibagi 5)</p>
+                        <p class="font-bold text-lg text-yellow-300 mb-2">// Mode 1</p>
                         <div class="text-sm text-green-300 mb-2">
                             <span class="font-bold">Total Nilai (M1):</span> 
                             ${v1_f_m1} (${A1_first.toUpperCase()}) + ${v1_l_m1} (${A1_last.toUpperCase()}) + ${v2_f_m1} (${A2_first.toUpperCase()}) + ${v2_l_m1} (${A2_last.toUpperCase()}) 
@@ -533,7 +560,7 @@
 
                 const calculationHtml7 = `
                     <div class="p-4 bg-[#2f3540] rounded-lg border border-red-400 mt-6 shadow-xl">
-                        <p class="font-bold text-lg text-red-300 mb-2">// WETON_CALCULATION (Mode 2 - Dibagi 7)</p>
+                        <p class="font-bold text-lg text-red-300 mb-2">// Mode 2</p>
                         <div class="text-sm text-green-300 mb-2">
                             <span class="font-bold">Total Nilai (M2):</span> 
                             ${v1_f_m2} (${A1_first.toUpperCase()}) + ${v1_l_m2} (${A1_last.toUpperCase()}) + ${v2_f_m2} (${A2_first.toUpperCase()}) + ${v2_l_m2} (${A2_last.toUpperCase()}) 
@@ -567,7 +594,7 @@
 
                 const calculationHtml9 = `
                     <div class="p-4 bg-[#2f3540] rounded-lg border border-fuchsia-500 mt-6 shadow-xl">
-                        <p class="font-bold text-lg text-fuchsia-300 mb-2">// PASANGAN_CALCULATION (Mode 3 - Dibagi 9)</p>
+                        <p class="font-bold text-lg text-fuchsia-300 mb-2">// Mode 3</p>
                         <div class="text-sm text-green-300 mb-2">
                             <span class="font-bold">Segmen 1 (M3):</span> ${v1_f_m3} (${A1_first.toUpperCase()}) + ${v1_l_m3} (${A1_last.toUpperCase()}) <span class="text-white font-bold">= ${sum1_m3}</span>
                             <span class="ml-4 font-bold">R1: ${sum1_m3} MOD 9</span> <span class="text-fuchsia-400 font-bold">= ${r1}</span>
@@ -586,33 +613,6 @@
                 `;
                 
                 htmlOutput += calculationHtml9;
-
-                // --- START MODE 4 CALCULATION (GROUP COMPATIBILITY) ---
-                
-                const G1 = getAksaraGroup(A1_first);
-                const G2 = getAksaraGroup(A2_first);
-                
-                const interpretation4 = getMode4Interpretation(G1, G2);
-
-                const calculationHtmlG4 = `
-                    <div class="p-4 bg-[#2f3540] rounded-lg border border-lime-400 mt-6 shadow-xl">
-                        <p class="font-bold text-lg text-lime-300 mb-2">// KECOCOKAN_GRUP (Mode 4 - Berdasarkan Aksara Awal)</p>
-                        <div class="text-sm text-green-300 mb-2">
-                            <span class="font-bold">Grup Aksara Awal:</span> 
-                            Segmen 1: <span class="text-lime-400 font-bold">Grup ${G1}</span> (${A1_first.toUpperCase()}) | 
-                            Segmen 2: <span class="text-lime-400 font-bold">Grup ${G2}</span> (${A2_first.toUpperCase()})
-                        </div>
-                        <p class="text-2xl font-extrabold text-[#00FF00] border-t border-gray-600 pt-3">
-                            <span class="text-green-300 text-base">HASIL AKHIR:</span> <span class="text-lime-400">${interpretation4.result.toUpperCase()}</span>
-                        </p>
-                        <p class="text-xl font-bold text-lime-400 mt-2">
-                            <span class="text-cyan-400">// DETAIL:</span> ${interpretation4.detail}
-                        </p>
-                    </div>
-                `;
-                
-                htmlOutput += calculationHtmlG4;
-                // --- END MODE 4 CALCULATION ---
 
             } else {
                  htmlOutput += `
@@ -643,16 +643,16 @@
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-10 pt-4">
             <h1 class="text-4xl font-extrabold text-green-400 mb-2">RAMALAN PERJODOHAN</h1>
-            <p class="text-xl text-green-500">Penganalisis Aksara Dasar Berdasarkan Nama (Weton)</p>
+            <p class="text-xl text-green-500">Ramal perjodohan Berdasarkan nama</p>
         </header>
 
         <div class="hacker-bg p-6 sm:p-8 rounded-xl border border-green-500 glow-border">
              <!-- Input Kalimat -->
             <div class="mb-6">
                 <label for="inputKalimat" class="block text-lg font-medium text-green-400 mb-2">
-                    <span class="text-cyan-400">INPUT:</span> Masukkan Kalimat Latin (HANYA MENDUKUNG format: "Kalimat 1 & Kalimat 2")
+                    <span class="text-cyan-400">INPUT:</span> Nama lengkap pasangan pisahkan dengan tanda &
                 </label>
-                <textarea id="inputKalimat" rows="4" class="w-full p-4 border border-green-500 bg-gray-900 text-green-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500 text-base resize-none glow-border" placeholder="Contoh: syampudin & munadoah"></textarea>
+                <textarea id="inputKalimat" rows="4" class="w-full p-4 border border-green-500 bg-gray-900 text-green-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500 text-base resize-none glow-border" placeholder="Contoh: jaka wibawa & sri mulyani"></textarea>
             </div>
 
             <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mb-8">
